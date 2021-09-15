@@ -4,8 +4,18 @@
 
 package edu.neu.coe.info6205.randomwalk;
 
-import java.util.Random;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartUtils;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.data.xy.XYDataset;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
+import java.io.File;
 
+
+import java.io.IOException;
+import java.util.Random;
 public class RandomWalk {
 
     private int x = 0;
@@ -20,7 +30,8 @@ public class RandomWalk {
      * @param dy the distance he moves in the y direction
      */
     private void move(int dx, int dy) {
-        // TO BE IMPLEMENTED
+        x += dx;
+        y += dy;
     }
 
     /**
@@ -29,7 +40,9 @@ public class RandomWalk {
      * @param m the number of steps the drunkard takes
      */
     private void randomWalk(int m) {
-        // TO BE IMPLEMENTED
+        for(int i=0;i<m;i++) {
+            randomMove();
+        }
     }
 
     /**
@@ -37,6 +50,8 @@ public class RandomWalk {
      * That's to say, moves can be (+-1, 0) or (0, +-1).
      */
     private void randomMove() {
+        //Determines if moving in x or y direcion
+        //True means in x, else in y
         boolean ns = random.nextBoolean();
         int step = random.nextBoolean() ? 1 : -1;
         move(ns ? step : 0, ns ? 0 : step);
@@ -48,8 +63,7 @@ public class RandomWalk {
      * @return the (Euclidean) distance from the origin to the current position.
      */
     public double distance() {
-        // TO BE IMPLEMENTED
-        return 0;
+        return Math.sqrt(Math.pow(x,2) + Math.pow(y,2));
     }
 
     /**
@@ -64,19 +78,66 @@ public class RandomWalk {
         for (int i = 0; i < n; i++) {
             RandomWalk walk = new RandomWalk();
             walk.randomWalk(m);
-            totalDistance = totalDistance + walk.distance();
+            totalDistance +=  walk.distance();
         }
         return totalDistance / n;
     }
 
-    public static void main(String[] args) {
-        if (args.length == 0)
-            throw new RuntimeException("Syntax: RandomWalk steps [experiments]");
-        int m = Integer.parseInt(args[0]);
-        int n = 30;
-        if (args.length > 1) n = Integer.parseInt(args[1]);
-        double meanDistance = randomWalkMulti(m, n);
-        System.out.println(m + " steps: " + meanDistance + " over " + n + " experiments");
+
+    public static void main(String[] args) throws IOException {
+        //Number of moves to test for
+        int N = 200;
+        //Number of experiments
+        int experiments = 100000;
+
+        Random r = new Random(System.currentTimeMillis());
+        int[] randomSteps = new int[N];
+        int stepIndex = 0;
+        double[] distances = new double[N];
+        for(int i=0;i<N;i++) {
+            int step = r.nextInt(N);
+            randomSteps[stepIndex] = step;
+            double distance = 0;
+            for(int j=0;j<experiments;j++) {
+                RandomWalk walk = new RandomWalk();
+                walk.randomWalk(step);
+                distance += walk.distance();
+            }
+            distances[stepIndex++] = distance/experiments;
+        }
+
+        JFreeChart xylineChart = ChartFactory.createXYLineChart(
+                "Relation of d and N" ,
+                "N - Number of Steps" ,
+                "d - Average Distance ove 100 experiments" ,
+                createDataset(randomSteps,distances) ,
+                PlotOrientation.VERTICAL ,
+                true , true , false);
+
+
+        int width = 640;   /* Width of the image */
+        int height = 480;  /* Height of the image */
+
+        String dir = System.getProperty("user.dir");
+        File XYChart = new File( dir + "/XYLineChart.jpeg" );
+        ChartUtils.saveChartAsPNG( XYChart, xylineChart, width, height);
+
+    }
+
+    private static XYDataset createDataset(int[] randomSteps, double[] distances) {
+
+        final XYSeries simulated = new XYSeries( "simulated" );
+        for(int i=0;i<randomSteps.length;i++) {
+            simulated.add(randomSteps[i],distances[i]);
+        }
+        final XYSeries rootOfN = new XYSeries( "sqrt(N)" );
+        for(int i=0;i<randomSteps.length;i++) {
+            rootOfN.add(randomSteps[i],Math.sqrt(randomSteps[i]));
+        }
+        final XYSeriesCollection dataset = new XYSeriesCollection( );
+        dataset.addSeries(simulated);
+        dataset.addSeries(rootOfN);
+        return dataset;
     }
 
 }
