@@ -86,7 +86,7 @@ public class RandomWalk {
 
     public static void main(String[] args) throws IOException {
         //Number of moves to test for
-        int N = 200;
+        int N = 6;
         //Number of experiments
         int experiments = 100000;
 
@@ -95,7 +95,7 @@ public class RandomWalk {
         int stepIndex = 0;
         double[] distances = new double[N];
         for(int i=0;i<N;i++) {
-            int step = r.nextInt(N);
+            int step = r.nextInt(3000);
             randomSteps[stepIndex] = step;
             double distance = 0;
             for(int j=0;j<experiments;j++) {
@@ -104,6 +104,7 @@ public class RandomWalk {
                 distance += walk.distance();
             }
             distances[stepIndex++] = distance/experiments;
+            System.out.println(step + " " + distances[stepIndex-1]);
         }
 
         JFreeChart xylineChart = ChartFactory.createXYLineChart(
@@ -134,9 +135,25 @@ public class RandomWalk {
         for(int i=0;i<randomSteps.length;i++) {
             rootOfN.add(randomSteps[i],Math.sqrt(randomSteps[i]));
         }
+
+        final XYSeries logN = new XYSeries( "ln N" );
+        for(int i=0;i<randomSteps.length;i++) {
+            logN.add(randomSteps[i],Math.log(randomSteps[i]) );
+        }
+        final XYSeries cbrtOfN = new XYSeries( "cubeRoot Of N");
+        for(int i=0;i<randomSteps.length;i++) {
+            cbrtOfN.add(randomSteps[i],Math.cbrt(randomSteps[i]) );
+        }
+
         final XYSeriesCollection dataset = new XYSeriesCollection( );
         dataset.addSeries(simulated);
         dataset.addSeries(rootOfN);
+        dataset.addSeries(cbrtOfN);
+        dataset.addSeries(logN);
+
+
+
+
         return dataset;
     }
 
