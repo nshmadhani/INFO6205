@@ -16,7 +16,12 @@ public interface Benchmark<T> {
      * @return the average number of milliseconds taken for each run of function f.
      */
     default double run(T t, int m) {
-        return runFromSupplier(() -> t, m);
+        return runFromSupplier(new Supplier<T>() {
+            @Override
+            public T get() {
+                return t;
+            }
+        }, m);
     }
 
     /**

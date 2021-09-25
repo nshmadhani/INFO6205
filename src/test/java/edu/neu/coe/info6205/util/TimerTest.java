@@ -67,7 +67,7 @@ public class TimerTest {
         timer.lap();
         GoToSleep(TENTH, 0);
         final double time = timer.stop();
-        assertEquals(TENTH_DOUBLE, time, 10.0);
+        assertEquals(TENTH_DOUBLE, time, 11);
         assertEquals(2, run);
     }
 
@@ -79,7 +79,7 @@ public class TimerTest {
         GoToSleep(TENTH, 0);
         timer.resume();
         final double time = timer.stop();
-        assertEquals(TENTH_DOUBLE, time, 10.0);
+        assertEquals(TENTH_DOUBLE, time, 11.0);
         assertEquals(2, run);
     }
 
@@ -101,7 +101,7 @@ public class TimerTest {
             return null;
         });
         assertEquals(10, new PrivateMethodTester(timer).invokePrivate("getLaps"));
-        assertEquals(TENTH_DOUBLE / 10, mean, 6);
+        assertEquals(TENTH_DOUBLE / 10, mean, 12);
         assertEquals(10, run);
         assertEquals(0, pre);
         assertEquals(0, post);
@@ -116,7 +116,7 @@ public class TimerTest {
             return null;
         });
         assertEquals(10, new PrivateMethodTester(timer).invokePrivate("getLaps"));
-        assertEquals(zzz, mean, 8.5);
+        assertEquals(zzz, mean, 11);
         assertEquals(10, run);
         assertEquals(0, pre);
         assertEquals(0, post);
@@ -126,6 +126,7 @@ public class TimerTest {
     public void testRepeat3() {
         final Timer timer = new Timer();
         final int zzz = 20;
+
         final double mean = timer.repeat(10, () -> zzz, t -> {
             GoToSleep(t, 0);
             return null;
@@ -133,8 +134,9 @@ public class TimerTest {
             GoToSleep(t, -1);
             return t;
         }, t -> GoToSleep(10, 1));
+
         assertEquals(10, new PrivateMethodTester(timer).invokePrivate("getLaps"));
-        assertEquals(zzz, mean, 6);
+        assertEquals(zzz, mean, 11);
         assertEquals(10, run);
         assertEquals(10, pre);
         assertEquals(10, post);

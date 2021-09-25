@@ -136,6 +136,9 @@ public class InsertionSortTest {
         assertEquals(inversions, fixes);
     }
 
+
+
+
     final static LazyLogger logger = new LazyLogger(InsertionSort.class);
 
 }

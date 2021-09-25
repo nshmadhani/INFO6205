@@ -1,5 +1,6 @@
 package edu.neu.coe.info6205.util;
 
+import java.sql.Time;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -52,10 +53,31 @@ public class Timer {
      * @param postFunction a function which consumes a U and which succeeds the call of function, but which is not timed (may be null).
      * @return the average milliseconds per repetition.
      */
-    public <T, U> double repeat(int n, Supplier<T> supplier, Function<T, U> function, UnaryOperator<T> preFunction, Consumer<U> postFunction) {
+    public <T, U> double repeat(int n, Supplier<T> supplier, Function<T, U> function,
+                                UnaryOperator<T> preFunction, Consumer<U> postFunction) {
         logger.trace("repeat: with " + n + " runs");
-        // TO BE IMPLEMENTED: note that the timer is running when this method is called and should still be running when it returns.
-        return 0;
+
+        long totalTime = 0;
+        for(int i=0;i<n;i++) {
+            T input = supplier.get();
+            if(preFunction != null)
+                input = preFunction.apply(input);
+
+            long start = Timer.getClock();
+
+            U result = function.apply(input);
+
+            long endTime = Timer.getClock();
+
+            totalTime += Timer.toMillisecs( endTime- start);
+
+
+            if(postFunction != null)
+                postFunction.accept(result);
+
+            lap();
+        }
+        return totalTime / (double) n;
     }
 
     /**
@@ -174,7 +196,7 @@ public class Timer {
      */
     private static long getClock() {
         // TO BE IMPLEMENTED
-        return 0;
+        return System.nanoTime();
     }
 
     /**
@@ -186,7 +208,8 @@ public class Timer {
      */
     private static double toMillisecs(long ticks) {
         // TO BE IMPLEMENTED
-        return 0;
+        //True if I have to convert nanSeconds to millis
+        return ticks / 1000000d;
     }
 
     final static LazyLogger logger = new LazyLogger(Timer.class);

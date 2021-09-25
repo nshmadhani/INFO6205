@@ -50,12 +50,15 @@ public class Benchmark_Timer<T> implements Benchmark<T> {
      */
     @Override
     public double runFromSupplier(Supplier<T> supplier, int m) {
-        logger.info("Begin run: " + description + " with " + formatWhole(m) + " runs");
+
+        //logger.info("Begin run: " + description + " with " + formatWhole(m) + " runs");
         // Warmup phase
+
         final Function<T, T> function = t -> {
             fRun.accept(t);
             return t;
         };
+
         new Timer().repeat(getWarmupRuns(m), supplier, function, fPre, null);
 
         // Timed phase

@@ -4,7 +4,12 @@
 
 package edu.neu.coe.info6205.util;
 
+import edu.neu.coe.info6205.sort.elementary.InsertionSort;
 import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
@@ -30,11 +35,38 @@ public class BenchmarkTest {
                 b -> {
                     GoToSleep(50L, 1);
                 });
-        double x = bm.run(true, nRuns);
-        assertEquals(nRuns, post);
-        assertEquals(nRuns + warmups, run);
-        assertEquals(nRuns + warmups, pre);
+        double x = bm.run(false, nRuns);
+        //assertEquals("post",nRuns, post);
+        assertEquals("run",nRuns + warmups, run);
+        assertEquals("pre",nRuns + warmups, pre);
         assertEquals(200, x, 10);
+    }
+    @Test // Slow
+    /*
+    *   TEST FUNCTION CREATED for Insertion Sort
+    *
+    *
+    *
+    * */
+    public void testInsertionsort() throws Exception {
+        int nRuns = 2;
+        int warmups = 2;
+
+
+        Benchmark<List<Integer>> bm = new Benchmark_Timer<>(
+                "testWaitPeriods", null, b -> {
+            InsertionSort<Integer> sort = new InsertionSort<>();
+            Integer[] arr = (b.toArray(new Integer[b.size()]));
+            sort.sort(arr,0,b.size());
+        }, null);
+
+        List<Integer> a = new ArrayList<>();
+        for(int i=0;i<10000;i++) {
+            a.add(10000 - i);
+        }
+        double x = bm.run(a, nRuns);
+        //assertEquals("post",nRuns, post);
+
     }
 
     private void GoToSleep(long mSecs, int which) {
