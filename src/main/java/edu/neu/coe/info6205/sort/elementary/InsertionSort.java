@@ -3,6 +3,7 @@
  */
 package edu.neu.coe.info6205.sort.elementary;
 
+import edu.neu.coe.info6205.BinarySearch;
 import edu.neu.coe.info6205.sort.BaseHelper;
 import edu.neu.coe.info6205.sort.Helper;
 import edu.neu.coe.info6205.sort.SortWithHelper;
@@ -84,27 +85,7 @@ public class InsertionSort<X extends Comparable<X>> extends SortWithHelper<X> {
         }
     }
 
-    /**
-     * Sort the sub-array xs:from:to using insertion sort.
-     *
-     * @param xs   sort the array xs from "from" to "to".
-     * @param from the index of the first element to sort
-     * @param to   the index of the first element not to sort
-     */
-    /*
-    public void binaryInsertionSort(X[] xs, int from, int to) {
-        final Helper<X> helper = getHelper();
-        for (int i = from; i < to; i++) {
-            X key = xs[i];
-            int j = i - 1;
-            while (j >= from && !helper.less(xs[j],key)) {
-                helper.swap(xs, j, j+1);
-                j = j - 1;
-            }
-            xs[j + 1] = key;
-        }
-    }
-    */
+
 
     public static final String DESCRIPTION = "Insertion sort";
 
@@ -183,17 +164,17 @@ public class InsertionSort<X extends Comparable<X>> extends SortWithHelper<X> {
                 List<Integer> reverseOrder =generateReverseSortedArray(INITIAL_N);
                 List<Integer> partialOrder = generatePartialArray(INITIAL_N);
 
-                //time = bm.run(sortedOrder,10);
-//                System.out.println("    Sorted order(N="+INITIAL_N+") = " +time +" ms");
-//                sortedSeries.add(INITIAL_N,time);
-//
-//                 time = bm.run(partialOrder,10);
-//                System.out.println("    Partial order(N="+INITIAL_N+") = " +time +" ms");
-//
-//                 partialSeries.add(INITIAL_N,time);
-//                 time = bm.run(reverseOrder,10);
-//                System.out.println("    Reverse order(N="+INITIAL_N+") = " +time +" ms");
-//                reverseSeries.add(INITIAL_N,time);
+                time = bm.run(sortedOrder,10);
+                System.out.println("    Sorted order(N="+INITIAL_N+") = " +time +" ms");
+                sortedSeries.add(INITIAL_N,time);
+
+                 time = bm.run(partialOrder,10);
+                System.out.println("    Partial order(N="+INITIAL_N+") = " +time +" ms");
+
+                 partialSeries.add(INITIAL_N,time);
+                 time = bm.run(reverseOrder,10);
+                System.out.println("    Reverse order(N="+INITIAL_N+") = " +time +" ms");
+                reverseSeries.add(INITIAL_N,time);
 
                  time = bm.run(randomOrder,10);
                 System.out.println("    Randome order(N="+INITIAL_N+") = " +time +" ms");

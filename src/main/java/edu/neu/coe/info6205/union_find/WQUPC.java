@@ -7,6 +7,7 @@ package edu.neu.coe.info6205.union_find;
  * Weighted Quick Union with Path Compression
  */
 public class WQUPC {
+
     private final int[] parent;   // parent[i] = parent of i
     private final int[] size;   // size[i] = size of subtree rooted at i
     private int count;  // number of components

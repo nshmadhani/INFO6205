@@ -17,11 +17,16 @@ public class BinarySearch {
         int hi = high;
         while (hi >= lo) {
             // TO BE IMPLEMENTED : implement binary search
-            return -1;
+            int mid = lo + (hi - lo) /2;
+            if(a[mid] == key)
+                return mid;
+            else if(a[mid] < key)
+                lo = mid+1;
+            else hi = mid - 1;
         }
         return -1;
-
     }
+
 
 
 }
