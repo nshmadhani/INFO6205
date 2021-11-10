@@ -1,7 +1,7 @@
 package edu.neu.coe.info6205.assignments.jfreechart;
 
 import org.jfree.chart.ChartFactory;
-import org.jfree.chart.ChartUtils;
+    import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.xy.XYDataset;

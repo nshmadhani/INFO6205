@@ -1,14 +1,21 @@
 package edu.neu.coe.info6205.sort.par;
 
+import com.sun.javafx.binding.StringFormatter;
+import edu.neu.coe.info6205.assignments.jfreechart.ChartHelper;
+import edu.neu.coe.info6205.util.Benchmark;
+import edu.neu.coe.info6205.util.Benchmark_Timer;
+import edu.neu.coe.info6205.util.CustomOrder;
+import org.jfree.data.xy.XYDataset;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
+
 import java.io.BufferedWriter;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.ForkJoinPool;
+import java.util.function.Function;
 
 /**
  * This code has been fleshed out by Ziyao Qiao. Thanks very much.
@@ -16,74 +23,172 @@ import java.util.concurrent.ForkJoinPool;
  */
 public class Main {
 
-    public static void main(String[] args) {
-        processArgs(args);
-        System.out.println("Degree of parallelism: " + ForkJoinPool.getCommonPoolParallelism());
-        Random random = new Random();
-        int[] array = new int[2000000];
-        ArrayList<Long> timeList = new ArrayList<>();
-        for (int j = 50; j < 100; j++) {
-            ParSort.cutoff = 10000 * (j + 1);
-            // for (int i = 0; i < array.length; i++) array[i] = random.nextInt(10000000);
-            long time;
-            long startTime = System.currentTimeMillis();
-            for (int t = 0; t < 10; t++) {
-                for (int i = 0; i < array.length; i++) array[i] = random.nextInt(10000000);
-                ParSort.sort(array, 0, array.length);
+    private static  int THREADS = 30;
+    public static String FOLDER = "./Assignments/5/";
+
+
+
+
+
+    public static void main(String[] args) throws IOException {
+        int N = 1000000;
+        /*
+        * TODO Test for different cuttOff with nice Thread value
+        * TODO Test for nThread value by keeping CutOff at 1
+        * TODO Test for a combination of both somehow
+        * */
+        THREADS = 30;
+        //runCutOffCases();
+        //runThreadCases();
+        combinationRun();
+
+
+    }
+    private static void combinationRun() throws IOException {
+
+        int[] N_VALUES = {250000,500000, 1000000};
+        int[] N_THREADS = {30,50,100,200};
+        for(int i=0;i<N_VALUES.length;i++) {
+            System.out.println("=======Testing for "+N_VALUES[i]+"=========");
+            for(int threads: N_THREADS) {
+                THREADS  = threads;
+                String title = "Incremental CutOff - " +N_VALUES[i] + " " + threads;
+                runCutOffCase(N_VALUES[i],
+                        FOLDER +title+".jpg",title,prev -> (int) (prev * 1.1));
+                title = "Doubling CutOff - " + N_VALUES[i] + " " + threads;
+                runCutOffCase(N_VALUES[i],
+                        FOLDER +title+".jpg",title,prev -> (int) (prev * 2));
             }
-            long endTime = System.currentTimeMillis();
-            time = (endTime - startTime);
-            timeList.add(time);
-
-
-            System.out.println("cutoff：" + (ParSort.cutoff) + "\t\t10times Time:" + time + "ms");
-
-        }
-        try {
-            FileOutputStream fis = new FileOutputStream("./src/result.csv");
-            OutputStreamWriter isr = new OutputStreamWriter(fis);
-            BufferedWriter bw = new BufferedWriter(isr);
-            int j = 0;
-            for (long i : timeList) {
-                String content = (double) 10000 * (j + 1) / 2000000 + "," + (double) i / 10 + "\n";
-                j++;
-                bw.write(content);
-                bw.flush();
-            }
-            bw.close();
-
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
+    private static void runCutOffCases() throws IOException {
 
-    private static void processArgs(String[] args) {
-        String[] xs = args;
-        while (xs.length > 0)
-            if (xs[0].startsWith("-")) xs = processArg(xs);
+        int[] N_VALUES = {250000,500000, 1000000};
+        int[] N_THREADS = {30, 30, 50, 50};
+
+        for(int i=0;i<N_VALUES.length;i++) {
+            System.out.println("=======Testing for "+N_VALUES[i]+"=========");
+            String title = "Incremental CutOff - " +N_VALUES[i];
+            runCutOffCase(N_VALUES[i],
+                    FOLDER +title+".jpg",title,prev -> (int) (prev * 1.1));
+
+            System.out.println("=========Incremental Done=========");
+            title = "Doubling CutOff - " +N_VALUES[i];
+            runCutOffCase(N_VALUES[i],
+                    FOLDER +title+".jpg",title,prev -> (int) (prev * 2));
+        }
     }
 
-    private static String[] processArg(String[] xs) {
-        String[] result = new String[0];
-        System.arraycopy(xs, 2, result, 0, xs.length - 2);
-        processCommand(xs[0], xs[1]);
-        return result;
+    private static void runCutOffCase(int N, String fileName, String title, Scheme scheme) throws IOException {
+        int[] randomOrder = CustomOrder.randomOrder(N);
+        int[] sortedOrer = CustomOrder.sortedOrder(N);
+        int[] partialOrder = CustomOrder.patialOrder(N);
+
+
+        //CutOff Values
+        XYSeriesCollection dataset = new XYSeriesCollection();
+
+        dataset.addSeries(case1ForCutOffSchemes(randomOrder,"Random Order",scheme));
+        dataset.addSeries(case1ForCutOffSchemes(sortedOrer,"Sorted Order", scheme));
+        dataset.addSeries(case1ForCutOffSchemes(partialOrder,"Partial Order", scheme));
+
+        ChartHelper.printChart(dataset,fileName,
+                title, "CutOff", "Time in milliseconds");
     }
 
-    private static void processCommand(String x, String y) {
-        if (x.equalsIgnoreCase("N")) setConfig(x, Integer.parseInt(y));
-        else
-            // TODO sort this out
-            if (x.equalsIgnoreCase("P")) //noinspection ResultOfMethodCallIgnored
-                ForkJoinPool.getCommonPoolParallelism();
+    public static XYSeries case1ForCutOffSchemes(int[] arrayToSort, String seriesName, Scheme scheme) {
+
+        XYSeries series = new XYSeries(seriesName);
+        int cutOff = 50000;
+        int N = arrayToSort.length;
+        ParSort sort = new ParSort(cutOff, THREADS, false);
+        Benchmark<int[]> bm = new Benchmark_Timer<>(
+                "Test for CutOFf", null, b -> {
+
+            int[] order =  new int[arrayToSort.length];
+            System.arraycopy(arrayToSort,0, order, 0, N);
+            sort.init();
+            sort.sort(order, 0, order.length);
+            sort.threadPool.shutdown();
+        }, null);
+
+        while (cutOff <= N) {
+            double time = bm.run(null,10);
+            System.out.println(time + " " + cutOff);
+            series.add(cutOff,time);
+            cutOff = scheme.next(cutOff);
+            sort.cutoff = cutOff;
+        }
+
+        return series;
+
+
     }
 
-    private static void setConfig(String x, int i) {
-        configuration.put(x, i);
+    private static void runThreadCases() throws IOException {
+
+        int[] N_VALUES = {250000,500000, 1000000};
+
+        for(int i=0;i<N_VALUES.length;i++) {
+            System.out.println("=======Testing for "+N_VALUES[i]+"=========");
+
+            System.out.println("=========Incremental Done=========");
+            String title = "Doubling Threads - " +N_VALUES[i];
+            runThreadCase(N_VALUES[i],
+                    FOLDER +title+".jpg",title,prev -> (int) (prev * 2));
+        }
     }
 
-    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
-    private static final Map<String, Integer> configuration = new HashMap<>();
+    private static void runThreadCase(int N, String fileName, String title, Scheme scheme) throws IOException {
+        int[] randomOrder = CustomOrder.randomOrder(N);
+        int[] sortedOrer = CustomOrder.sortedOrder(N);
+        int[] partialOrder = CustomOrder.patialOrder(N);
+
+
+        //CutOff Values
+        XYSeriesCollection dataset = new XYSeriesCollection();
+
+        dataset.addSeries(case1ForThreadSchemes(randomOrder,"Random Order",scheme));
+        dataset.addSeries(case1ForThreadSchemes(sortedOrer,"Sorted Order", scheme));
+        dataset.addSeries(case1ForThreadSchemes(partialOrder,"Partial Order", scheme));
+
+        ChartHelper.printChart(dataset,fileName,
+                title, "Number of Threads", "Time in milliseconds");
+    }
+
+    public static XYSeries case1ForThreadSchemes(int[] arrayToSort, String seriesName, Scheme scheme) {
+
+        XYSeries series = new XYSeries(seriesName);
+        int threads = 2;
+        int N = arrayToSort.length;
+        ParSort sort = new ParSort(50000, threads, true);
+        Benchmark<int[]> bm = new Benchmark_Timer<>(
+                "Test for Cutoff", null, b -> {
+            int[] order =  new int[arrayToSort.length];
+            System.arraycopy(arrayToSort,0, order, 0, N);
+            sort.init();
+            sort.sort(order, 0, order.length);
+            sort.threadPool.shutdown();
+        }, null);
+
+        while (threads <= 8192) {
+            sort.nThreads = threads;
+            double time = bm.run(null,10);
+            System.out.println(time + " " + threads);
+            series.add(threads,time);
+            threads = scheme.next(threads);
+        }
+        return series;
+    }
+
+
+
+
+    @FunctionalInterface
+    interface Scheme {
+        int next(int prev);
+    }
+
 
 
 }
